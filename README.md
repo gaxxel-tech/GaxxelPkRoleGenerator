@@ -17,6 +17,17 @@ This is my first module. I built it because sometimes I’m not so quick at comi
 
 ---
 
+## ✨ Features
+
+This generator can automatically create and assign:
+
+- **Attributes** 
+- **Social Attributes** 
+- **Skills**  
+- **Gender** – (Only male and female. If you need something specific or a pokemon is only female or genderless do it manually after generation.)
+- **Natures** – 
+
+
 ## 📌 Notes
 
 - This module is designed to help with quick improvisation during roleplay sessions.  
