@@ -1,8 +1,9 @@
 {
   "id": "GaxxelPkRoleGenerator",
+  "name": "gaxxelpkrolegenerator",
   "title": "GaxxelPkRoleGenerator",
   "description": "A quick improvisation tool to generate Pokémon or Trainer NPCs with attributes, skills, gender, and natures.",
-  "version": "0.1.1",
+  "version": "0.1.0",
   "compatibility": {
     "minimum": "13",
     "verified": "13"
@@ -11,31 +12,12 @@
     "main.mjs"
   ],
   "flags": {},
+  "author": "gaxxel",
   "authors": [
     {
       "name": "gaxxel",
       "url": "https://github.com/gaxxel-tech",
       "email": "carlosgjcl1@gmail.com"
-    }
-  ],
-  "languages": [
-    {
-      "lang": "ru",
-      "name": "Русский",
-      "path": "lang/ru.json",
-      "flags": {}
-    },
-    {
-      "lang": "en",
-      "name": "English",
-      "path": "lang/en.json",
-      "flags": {}
-    },
-    {
-      "lang": "es",
-      "name": "Español",
-      "path": "lang/es.json",
-      "flags": {}
     }
   ],
   "url": "https://github.com/gaxxel-tech/GaxxelPkRoleGenerator",
