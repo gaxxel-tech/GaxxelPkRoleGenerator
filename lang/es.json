@@ -1,0 +1,28 @@
+{
+  "GAXXGENERATOR": {
+    "GeneratePokemon": "Generar Pokémon",
+    "SelectTheRank": "Seleccionar el rango",
+    "DragAnActorOrToken": "Arrastra un actor o token aquí",
+    "ReleasedActorWillAppear": "El actor soltado aparecerá aquí",
+    "ActorProcessingMenuTitle": "Generador de Pokémon",
+    "GenerateAndCreateButton": "Generar y crear actor",
+    "CloseButton": "Cerrar",
+    "ReadyToGenerateText": "Listo para generar estadísticas aleatorias.",
+
+    "RankStarter": "Starter",
+    "RankRookie": "Rookie",
+    "RankStandard": "Standard",
+    "RankAdvanced": "Advanced",
+    "RankExpert": "Expert",
+    "RankAce": "Ace",
+
+    "InvalidActorWarning": "Lo que has soltado no es un actor o token válido.",
+    "NoActorDraggedWarning": "Por favor, arrastra primero un actor al menú.",
+    "InvalidRangeError": "Rango de Pokémon seleccionado no válido.",
+
+    "WildPokemonName": "{rank} salvaje {name}",
+    "ActorImportedSuccess": "¡{name} creado e importado con éxito!",
+    "RangeLabel": "Rango",
+    "PointsDistributionWarning": "No se pudieron distribuir todos los puntos (se alcanzaron los límites)."
+  }
+}

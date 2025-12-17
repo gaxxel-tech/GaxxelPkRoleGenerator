@@ -4,24 +4,22 @@ Hooks.once("init", () => {
 
 let tempDroppedActorData = null; // Variable temporal para almacenar datos del actor arrastrado
 
-
+// Добавляем ключи локализации для рангов
 const RANGES_DATA = {
-    starter: { attr: 0, social: 0, skill: 5, skillMax: 1, name: "Starter" },
-    rookie: { attr: 2, social: 2, skill: 10, skillMax: 2, name: "Rookie" },
-    standard: { attr: 4, social: 4, skill: 14, skillMax: 3, name: "Standard" },
-    advance: { attr: 6, social: 6, skill: 17, skillMax: 4, name: "Advance" },
-    expert: { attr: 8, social: 8, skill: 19, skillMax: 5, name: "Expert" },
-    ace: { attr: 10, social: 10, skill: 20, skillMax: 5, name: "Ace" } 
+    starter: { attr: 0, social: 0, skill: 5, skillMax: 1, nameKey: "GAXXGENERATOR.RankStarter" },
+    rookie: { attr: 2, social: 2, skill: 10, skillMax: 2, nameKey: "GAXXGENERATOR.RankRookie" },
+    standard: { attr: 4, social: 4, skill: 14, skillMax: 3, nameKey: "GAXXGENERATOR.RankStandard" },
+    advanced: { attr: 6, social: 6, skill: 17, skillMax: 4, nameKey: "GAXXGENERATOR.RankAdvanced" },
+    expert: { attr: 8, social: 8, skill: 19, skillMax: 5, nameKey: "GAXXGENERATOR.RankExpert" },
+    ace: { attr: 10, social: 10, skill: 20, skillMax: 5, nameKey: "GAXXGENERATOR.RankAce" }
 };
 
-const GENDERS = ["male", "female"];
+const GENDERS = ["male", "female", "genderless"];
 const NATURES = ["hardy", "lonely", "brave", "adamant", "naughty",
                  "bold", "docile", "relaxed", "impish", "lax",
                  "timid", "hasty", "serious", "jolly", "naive",
                  "modest", "mild", "quiet", "bashful", "rash",
                  "calm", "gentle", "sassy", "careful", "quirky"];
-
-
 
 Hooks.on("renderActorDirectory", (app, element, data) => {
     const headerActions = element.querySelector('.header-actions.action-buttons.flexrow');
@@ -30,9 +28,9 @@ Hooks.on("renderActorDirectory", (app, element, data) => {
         const jHeaderActions = $(headerActions);
 
         const newButtonHtml = `
-            <button type="button" class="my-custom-actor-button" data-action="myCustomAction" title="Generar Pokemon Salvaje">
+            <button type="button" class="my-custom-actor-button" data-action="myCustomAction" title="${game.i18n.localize("GAXXGENERATOR.GeneratePokemon")}">
                 <i class="fas fa-magic"></i>
-                <span>Generar Pokemon</span>
+                <span>${game.i18n.localize("GAXXGENERATOR.GeneratePokemon")}</span>
             </button>
         `;
 
@@ -47,49 +45,49 @@ Hooks.on("renderActorDirectory", (app, element, data) => {
     }
 });
 
-
-
-
-//la funcion para generar el pokemon
 async function openPokemonGenerator(actor){
     tempDroppedActorData = null; 
+
+    // Генерируем опции с локализованными названиями рангов
+    const rangeOptions = `
+        <option value="starter">${game.i18n.localize(RANGES_DATA.starter.nameKey)}</option>
+        <option value="rookie">${game.i18n.localize(RANGES_DATA.rookie.nameKey)}</option>
+        <option value="standard">${game.i18n.localize(RANGES_DATA.standard.nameKey)}</option>
+        <option value="advanced">${game.i18n.localize(RANGES_DATA.advanced.nameKey)}</option>
+        <option value="expert">${game.i18n.localize(RANGES_DATA.expert.nameKey)}</option>
+        <option value="ace">${game.i18n.localize(RANGES_DATA.ace.nameKey)}</option>
+    `;
 
     const dialogContent = `
         <div class="custom-drag-and-drop-container">
             <div style="margin-bottom: 10px;">
-                <label for="pokemon-range-selector">Selecciona el Rango:</label>
+                <label for="pokemon-range-selector">${game.i18n.localize("GAXXGENERATOR.SelectTheRank")}:</label>
                 <select id="pokemon-range-selector" style="width: 100%; padding: 5px;">
-                    <option value="starter">${RANGES_DATA.starter.name}</option>
-                    <option value="rookie">${RANGES_DATA.rookie.name}</option>
-                    <option value="standard">${RANGES_DATA.standard.name}</option>
-                    <option value="advance">${RANGES_DATA.advance.name}</option>
-                    <option value="expert">${RANGES_DATA.expert.name}</option>
-                    <option value="ace">${RANGES_DATA.ace.name}</option> <!-- NUEVA OPCIÓN -->
+                    ${rangeOptions}
                 </select>
             </div>
             <div class="custom-drop-zone" style="border: 2px dashed #ccc; padding: 20px; text-align: center; margin: 10px; background-color: #f9f9f9;">
-                Arrastra un actor o token aquí
+                ${game.i18n.localize("GAXXGENERATOR.DragAnActorOrToken")}
             </div>
             <div class="actor-display-container">
-                <!-- Aquí aparecerá el actor soltado -->
+                ${game.i18n.localize("GAXXGENERATOR.ReleasedActorWillAppear")}
             </div>
         </div>
     `;
 
-    // ... (El resto del código del diálogo sigue igual) ...
     new Dialog({
-        title: "Actor Processing Menu",
+        title: game.i18n.localize("GAXXGENERATOR.ActorProcessingMenuTitle"),
         content: dialogContent,
         buttons: {
             generate: {
-                label: "Generar y Crear Actor",
+                label: game.i18n.localize("GAXXGENERATOR.GenerateAndCreateButton"),
                 icon: "<i class='fas fa-dice'></i>",
                 callback: (html) => {
                     generateAndImportActor(undefined, html);
                 }
             },
             close: {
-                label: "Cerrar",
+                label: game.i18n.localize("GAXXGENERATOR.CloseButton"),
                 icon: "<i class='fas fa-times'></i>",
             }
         },
@@ -114,7 +112,7 @@ async function openPokemonGenerator(actor){
                 if (droppedActor) {
                     handleActorDrop(undefined, droppedActor, html);
                 } else {
-                    ui.notifications.warn("Lo que has soltado no es un actor o token válido.");
+                    ui.notifications.warn(game.i18n.localize("GAXXGENERATOR.InvalidActorWarning"));
                 }
             });
         },
@@ -122,10 +120,9 @@ async function openPokemonGenerator(actor){
     }).render(true);
 }
 
-//funcion para generar e importar actor con estadisticas aleatorias
 async function generateAndImportActor(sourceActor, dialogHtml) {
     if (!tempDroppedActorData) {
-        ui.notifications.warn("Por favor, arrastra un actor al menú primero.");
+        ui.notifications.warn(game.i18n.localize("GAXXGENERATOR.NoActorDraggedWarning"));
         return;
     }
     const rangeSelector = dialogHtml.find('#pokemon-range-selector');
@@ -138,79 +135,58 @@ async function generateAndImportActor(sourceActor, dialogHtml) {
     const randomNature = NATURES[randomNatureIndex];
 
     if (!rangeData) {
-        ui.notifications.error("Rango de Pokémon no válido.");
+        ui.notifications.error(game.i18n.localize("GAXXGENERATOR.InvalidRangeError"));
         return;
     }
 
     let actorDataToImport = foundry.utils.deepClone(tempDroppedActorData);
-    actorDataToImport.name = `${rangeData.name} salvaje ${actorDataToImport.name}`;
-    
+    actorDataToImport.name = game.i18n.format("GAXXGENERATOR.WildPokemonName", {
+        rank: game.i18n.localize(rangeData.nameKey),
+        name: actorDataToImport.name
+    });
 
-    // --- DISTRIBUCIÓN DE PUNTOS USANDO LAS RUTAS CORRECTAS ---
     if (actorDataToImport.system) {
-                // 1. Forzar el límite máximo individual de SKILLS en los datos antes de la distribución
-
-        // ASIGNAR EL GÉNERO ALEATORIO (asumiendo actor.system.gender como ruta)
         actorDataToImport.system.gender = randomGender;
-        // ASIGNAR LA NATURALEZA ALEATORIA (asumiendo actor.system.nature como ruta)
         actorDataToImport.system.personality = randomNature;
 
-
-        actorDataToImport.system.rank = selectedRangeKey; // Aseguramos que el rango esté actualizado
-        if (actorDataToImport.system.skills) { // Usamos 'skills' (plural)
+        actorDataToImport.system.rank = selectedRangeKey;
+        if (actorDataToImport.system.skills) {
              Object.keys(actorDataToImport.system.skills).forEach(skillKey => {
-                 // Forzamos el límite máximo del Pokémon ('.max') a ser igual al límite del rango (skillMax)
                  actorDataToImport.system.skills[skillKey].max = rangeData.skillMax;
              });
         }
 
-        
-
-        // 1. Atributos Normales (strength, dexterity, vitality, special, insight)
-        // No tienen límite de rango fijo (usamos 999), solo el límite del Pokémon (el .max)
         distributePoints(actorDataToImport.system.attributes, rangeData.attr, 999); 
-        
-        // 2. Atributos Sociales (Clever, Cute, etc.)
-        // Tienen un límite fijo de 5. **AJUSTA 'social' si la ruta no es correcta**
         distributePoints(actorDataToImport.system.social, rangeData.social, 5); 
-
-        // 3. Skills (Brawl, Channel, Medicine, etc.)
-        // El límite depende del rango actual (skillMax). **AJUSTA 'skill' si la ruta no es correcta**
         distributePoints(actorDataToImport.system.skills, rangeData.skill, rangeData.skillMax); 
-        
     } else {
         console.warn("Estructura 'system' no encontrada en los datos del actor.");
     }
-    // ----------------------------
 
-    // 3. Importar el actor modificado
     const importedActor = await Actor.create(actorDataToImport);
 
-    // 4. Actualizar la interfaz del diálogo
     const actorContainer = dialogHtml.find(".actor-display-container");
     const resultHTML = `
         <div style="padding: 10px; border: 1px solid #4CAF50; margin-top: 10px; background-color: white;">
-            <strong>¡${importedActor.name} importado!</strong><br>
-            Rango: ${rangeData.name}
+            <strong>${game.i18n.format("GAXXGENERATOR.ActorImportedSuccess", { name: importedActor.name })}</strong><br>
+            ${game.i18n.localize("GAXXGENERATOR.RangeLabel")}: ${game.i18n.localize(rangeData.nameKey)}
         </div>
     `;
     actorContainer.html(resultHTML);
     tempDroppedActorData = null;
 }
 
-//Funcion que se encarga de manejar el drop del actor
 function handleActorDrop(sourceActor, droppedActor, dialogHtml) {
-    // Almacenar los datos del actor en la variable temporal global
     tempDroppedActorData = droppedActor.toObject();
     console.log("Ruta system.rank:", droppedActor.system.rank);
-    // Actualizar la interfaz para mostrar que un actor ha sido arrastrado
+
     const actorContainer = dialogHtml.find(".actor-display-container");
     const actorHTML = `
         <div class="dropped-actor-card" style="display: flex; align-items: center; padding: 10px; border: 1px solid #ccc; margin-top: 10px; background-color: white;">
             <img src="${droppedActor.img}" style="width: 50px; height: 50px; margin-right: 10px;"/>
             <div>
                 <strong>${droppedActor.name}</strong><br>
-                <span>Listo para generar estadísticas aleatorias.</span>
+                <span>${game.i18n.localize("GAXXGENERATOR.ReadyToGenerateText")}</span>
             </div>
         </div>
     `;
@@ -223,27 +199,20 @@ function getRandomInt(min, max) {
     return Math.floor(Math.random() * (max - min + 1)) + min;
 }
 
-
-// Función para distribuir puntos aleatoriamente, respetando límites (sin cambios)
 function distributePoints(attributesObject, pointsToDistribute, maxRankLimit) {
     const keys = Object.keys(attributesObject);
     let remainingPoints = pointsToDistribute;
-
-    // AQUI ESTÁ EL CAMBIO CRUCIAL:
-    // No reiniciamos a 0. Mantenemos el valor base existente del Pokémon.
-    // keys.forEach(key => { attributesObject[key].value = 0; }); 
 
     while (remainingPoints > 0) {
         const randomKey = keys[getRandomInt(0, keys.length - 1)];
         const currentVal = attributesObject[randomKey].value;
         const pokemonMax = attributesObject[randomKey].max || 999; 
 
-        // Verificamos si podemos aumentar el valor sin superar el límite de rango Y el límite del pokemon
         if (currentVal < maxRankLimit && currentVal < pokemonMax) {
             attributesObject[randomKey].value += 1;
             remainingPoints -= 1;
         } else if (keys.every(k => attributesObject[k].value >= maxRankLimit || attributesObject[k].value >= attributesObject[k].max)) {
-            console.warn(`No se pudieron distribuir todos los puntos para ${keys} (límite ${maxRankLimit} o máximo del Pokémon alcanzado).`);
+            console.warn(game.i18n.localize("GAXXGENERATOR.PointsDistributionWarning"));
             break;
         }
     }
