@@ -6,12 +6,12 @@ let tempDroppedActorData = null; // Variable temporal para almacenar datos del a
 
 // Добавляем ключи локализации для рангов
 const RANGES_DATA = {
-    starter: { attr: 0, social: 0, skill: 5, skillMax: 1, nameKey: "GAXXGENERATOR.RankStarter" },
-    rookie: { attr: 2, social: 2, skill: 10, skillMax: 2, nameKey: "GAXXGENERATOR.RankRookie" },
-    standard: { attr: 4, social: 4, skill: 14, skillMax: 3, nameKey: "GAXXGENERATOR.RankStandard" },
-    advanced: { attr: 6, social: 6, skill: 17, skillMax: 4, nameKey: "GAXXGENERATOR.RankAdvanced" },
-    expert: { attr: 8, social: 8, skill: 19, skillMax: 5, nameKey: "GAXXGENERATOR.RankExpert" },
-    ace: { attr: 10, social: 10, skill: 20, skillMax: 5, nameKey: "GAXXGENERATOR.RankAce" }
+    starter: { attr: 0, social: 0, skill: 5, skillMax: 1, name: "Starter" },
+    rookie: { attr: 2, social: 2, skill: 10, skillMax: 2, name: "Rookie" },
+    standard: { attr: 4, social: 4, skill: 14, skillMax: 3, name: "Standard" },
+    advance: { attr: 6, social: 6, skill: 17, skillMax: 4, name: "Advanced" },
+    expert: { attr: 8, social: 8, skill: 19, skillMax: 5, name: "Expert" },
+    ace: { attr: 10, social: 10, skill: 20, skillMax: 5, name: "Ace" } 
 };
 
 const GENDERS = ["male", "female", "genderless"];
