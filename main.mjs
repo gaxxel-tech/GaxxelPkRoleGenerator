@@ -1,8 +1,29 @@
+import { assignWildStats, assignBattleStats, assignAverageStats } from './scripts/generatorLogic.js';
+
 Hooks.once("init", () => {
     console.log("Iniciando modulo de prueba");
-});
 
-let tempDroppedActorData = null; // Variable temporal para almacenar datos del actor arrastrado
+    // Регистрация настроек модуля
+    game.settings.register("GaxxelPkRoleGenerator", "randomizeGender", {
+        name: "GAXXGENERATOR.Settings.RandomizeGenderName",
+        hint: "GAXXGENERATOR.Settings.RandomizeGenderHint",
+        scope: "world",
+        config: true,
+        type: Boolean,
+        default: true,
+        requiresReload: false
+    });
+
+    game.settings.register("GaxxelPkRoleGenerator", "randomizeNature", {
+        name: "GAXXGENERATOR.Settings.RandomizeNatureName",
+        hint: "GAXXGENERATOR.Settings.RandomizeNatureHint",
+        scope: "world",
+        config: true,
+        type: Boolean,
+        default: true,
+        requiresReload: false
+    });
+});
 
 const RANGES_DATA = {
     starter: { attr: 0, social: 0, skill: 5, skillMax: 1, nameKey: "GAXXGENERATOR.RankStarter" },
@@ -13,7 +34,19 @@ const RANGES_DATA = {
     ace: { attr: 10, social: 10, skill: 20, skillMax: 5, nameKey: "GAXXGENERATOR.RankAce" }
 };
 
-const GENDERS = ["male", "female", "genderless"];
+const GENERATION_TYPES = {
+    wild: { nameKey: "GAXXGENERATOR.GenerationTypeWild" },
+    battle: { nameKey: "GAXXGENERATOR.GenerationTypeBattle" },
+    average: { nameKey: "GAXXGENERATOR.GenerationTypeAverage" }
+};
+
+const COMBAT_BIAS_TYPES = {
+    tank: { nameKey: "GAXXGENERATOR.CombatBiasTank" },
+    physical: { nameKey: "GAXXGENERATOR.CombatBiasPhysical" },
+    special: { nameKey: "GAXXGENERATOR.CombatBiasSpecial" }
+};
+
+const GENDERS = ["male", "female"];
 const NATURES = ["hardy", "lonely", "brave", "adamant", "naughty",
                  "bold", "docile", "relaxed", "impish", "lax",
                  "timid", "hasty", "serious", "jolly", "naive",
@@ -21,6 +54,8 @@ const NATURES = ["hardy", "lonely", "brave", "adamant", "naughty",
                  "calm", "gentle", "sassy", "careful", "quirky"];
 
 Hooks.on("renderActorDirectory", (app, element, data) => {
+    if (!game.user.isGM) return;
+    
     const headerActions = element.querySelector('.header-actions.action-buttons.flexrow');
 
     if (headerActions) {
@@ -34,184 +69,255 @@ Hooks.on("renderActorDirectory", (app, element, data) => {
         `;
 
         jHeaderActions.append(newButtonHtml);
-
         jHeaderActions.off('click', '.my-custom-actor-button');
-
         jHeaderActions.on('click', '.my-custom-actor-button', (event) => {
             event.preventDefault();
-            openPokemonGenerator();
+            new PokemonGeneratorApp().render({ force: true });
         });
     }
 });
 
-async function openPokemonGenerator(actor){
-    tempDroppedActorData = null; 
-
-    const rangeOptions = `
-        <option value="starter">${game.i18n.localize(RANGES_DATA.starter.nameKey)}</option>
-        <option value="rookie">${game.i18n.localize(RANGES_DATA.rookie.nameKey)}</option>
-        <option value="standard">${game.i18n.localize(RANGES_DATA.standard.nameKey)}</option>
-        <option value="advanced">${game.i18n.localize(RANGES_DATA.advanced.nameKey)}</option>
-        <option value="expert">${game.i18n.localize(RANGES_DATA.expert.nameKey)}</option>
-        <option value="ace">${game.i18n.localize(RANGES_DATA.ace.nameKey)}</option>
-    `;
-
-    const dialogContent = `
-        <div class="custom-drag-and-drop-container">
-            <div style="margin-bottom: 10px;">
-                <label for="pokemon-range-selector">${game.i18n.localize("GAXXGENERATOR.SelectTheRank")}:</label>
-                <select id="pokemon-range-selector" style="width: 100%; padding: 5px;">
-                    ${rangeOptions}
-                </select>
-            </div>
-            <div class="custom-drop-zone" style="border: 2px dashed #ccc; padding: 20px; text-align: center; margin: 10px; background-color: #f9f9f9;">
-                ${game.i18n.localize("GAXXGENERATOR.DragAnActorOrToken")}
-            </div>
-            <div class="actor-display-container">
-                ${game.i18n.localize("GAXXGENERATOR.ReleasedActorWillAppear")}
-            </div>
-        </div>
-    `;
-
-    new Dialog({
-        title: game.i18n.localize("GAXXGENERATOR.ActorProcessingMenuTitle"),
-        content: dialogContent,
-        buttons: {
-            generate: {
-                label: game.i18n.localize("GAXXGENERATOR.GenerateAndCreateButton"),
-                icon: "<i class='fas fa-dice'></i>",
-                callback: (html) => {
-                    generateAndImportActor(undefined, html);
-                }
-            },
-            close: {
-                label: game.i18n.localize("GAXXGENERATOR.CloseButton"),
-                icon: "<i class='fas fa-times'></i>",
-            }
-        },
-        render: (html) => {
-            const dropZone = html.find(".custom-drop-zone");
-            dropZone.on("dragover", (event) => {
-                event.preventDefault(); dropZone.css("background-color", "#e9e9e9");
-            });
-            dropZone.on("dragleave", (event) => {
-                dropZone.css("background-color", "#f9f9f9");
-            });
-            dropZone.on("drop", async (event) => {
-                event.preventDefault(); dropZone.css("background-color", "#f9f9f9");
-                const dragData = JSON.parse(event.originalEvent.dataTransfer.getData('text/plain'));
-                let droppedActor = null;
-                if (dragData.type === "Actor" && dragData.uuid) {
-                    droppedActor = await fromUuid(dragData.uuid);
-                } else if (dragData.tokenId) {
-                    const token = canvas.tokens.get(dragData.tokenId);
-                    droppedActor = token ? token.actor : null;
-                }
-                if (droppedActor) {
-                    handleActorDrop(undefined, droppedActor, html);
-                } else {
-                    ui.notifications.warn(game.i18n.localize("GAXXGENERATOR.InvalidActorWarning"));
-                }
-            });
-        },
-        default: "close"
-    }).render(true);
-}
-
-async function generateAndImportActor(sourceActor, dialogHtml) {
-    if (!tempDroppedActorData) {
-        ui.notifications.warn(game.i18n.localize("GAXXGENERATOR.NoActorDraggedWarning"));
-        return;
-    }
-    const rangeSelector = dialogHtml.find('#pokemon-range-selector');
-    const selectedRangeKey = rangeSelector.val();
-    const rangeData = RANGES_DATA[selectedRangeKey];
-
-    const randomIndex = getRandomInt(0, GENDERS.length - 1);
-    const randomGender = GENDERS[randomIndex];
-    const randomNatureIndex = getRandomInt(0, NATURES.length - 1);
-    const randomNature = NATURES[randomNatureIndex];
-
-    if (!rangeData) {
-        ui.notifications.error(game.i18n.localize("GAXXGENERATOR.InvalidRangeError"));
-        return;
+class PokemonGeneratorApp extends foundry.applications.api.HandlebarsApplicationMixin(
+    foundry.applications.api.ApplicationV2
+) {
+    constructor(options = {}) {
+        super(options);
+        this.#droppedActor = null;
+        this.#dragDropHandler = null;
+        this.#selectedRange = "starter";
+        this.#selectedGenType = "wild";
+        this.#selectedCombatBias = "tank";
+        this._onGenerateBound = this._onGenerate.bind(this);
     }
 
-    let actorDataToImport = foundry.utils.deepClone(tempDroppedActorData);
-    actorDataToImport.name = game.i18n.format("GAXXGENERATOR.WildPokemonName", {
-        rank: game.i18n.localize(rangeData.nameKey),
-        name: actorDataToImport.name
-    });
+    static DEFAULT_OPTIONS = {
+        id: "pokemon-generator-app",
+        tag: "div",
+        window: {
+            title: "GAXXGENERATOR.ActorProcessingMenuTitle",
+            icon: "fas fa-magic",
+            resizable: false,
+        },
+        classes: ["pokemon-generator-window"],
+        position: {
+            width: 400,
+            height: "auto"
+        }
+    };
 
-    if (actorDataToImport.system) {
-        actorDataToImport.system.gender = randomGender;
-        actorDataToImport.system.personality = randomNature;
+    static PARTS = {
+        content: {
+            template: "modules/GaxxelPkRoleGenerator/templates/pokemon-generator.hbs"
+        },
+        footer: {
+            template: "modules/GaxxelPkRoleGenerator/templates/pokemon-generator-footer.hbs"
+        }
+    };
 
-        actorDataToImport.system.rank = selectedRangeKey;
-        if (actorDataToImport.system.skills) {
-             Object.keys(actorDataToImport.system.skills).forEach(skillKey => {
-                 actorDataToImport.system.skills[skillKey].max = rangeData.skillMax;
-             });
+    #droppedActor;
+    #dragDropHandler;
+    #selectedRange;
+    #selectedGenType;
+    #selectedCombatBias;
+    _onGenerateBound;
+
+    _prepareContext() {
+        const ranges = Object.entries(RANGES_DATA).map(([key, data]) => ({
+            key,
+            nameKey: data.nameKey,
+            selected: key === this.#selectedRange
+        }));
+        const generationTypes = Object.entries(GENERATION_TYPES).map(([key, data]) => ({
+            key,
+            nameKey: data.nameKey,
+            selected: key === this.#selectedGenType
+        }));
+        const combatBiasTypes = Object.entries(COMBAT_BIAS_TYPES).map(([key, data]) => ({
+            key,
+            nameKey: data.nameKey,
+            selected: key === this.#selectedCombatBias
+        }));
+        return {
+            ranges,
+            generationTypes,
+            combatBiasTypes,
+            droppedActor: this.#droppedActor,
+            showCombatBias: this.#selectedGenType === 'battle',
+            i18n: (key) => game.i18n.localize(key)
+        };
+    }
+
+    _onRender(context, options) {
+        super._onRender(context, options);
+        this.#activateListeners(this.element);
+    }
+
+    #activateListeners(html) {
+        if (!this.#dragDropHandler) {
+            this.#dragDropHandler = new foundry.applications.ux.DragDrop({
+                dropSelector: ".custom-drop-zone",
+                callbacks: {
+                    drop: this._onDrop.bind(this),
+                    dragover: (event) => {
+                        const target = event.target.closest(".custom-drop-zone");
+                        if (target) target.style.backgroundColor = "#4a4a4a";
+                    },
+                    dragleave: (event) => {
+                        const target = event.target.closest(".custom-drop-zone");
+                        if (target) target.style.backgroundColor = "#2a2a2a";
+                    }
+                }
+            });
+        }
+        this.#dragDropHandler.bind(this.element);
+
+        const closeBtn = html.querySelector('[data-action="close"]');
+        if (closeBtn) {
+            closeBtn.addEventListener('click', () => this.close());
         }
 
-        distributePoints(actorDataToImport.system.attributes, rangeData.attr, 999); 
-        distributePoints(actorDataToImport.system.social, rangeData.social, 5); 
-        distributePoints(actorDataToImport.system.skills, rangeData.skill, rangeData.skillMax); 
-    } else {
-        console.warn("Estructura 'system' no encontrada en los datos del actor.");
+        const generateBtn = html.querySelector('[data-action="generate"]');
+        if (generateBtn) {
+            generateBtn.removeEventListener('click', this._onGenerateBound);
+            generateBtn.addEventListener('click', this._onGenerateBound);
+        }
+
+        const selectEl = html.querySelector('[name="range"]');
+        if (selectEl) {
+            selectEl.addEventListener('change', (event) => {
+                this.#selectedRange = event.target.value;
+            });
+            selectEl.value = this.#selectedRange;
+        }
+
+        const genTypeEl = html.querySelector('[name="generationType"]');
+        const combatBiasContainer = html.querySelector('.combat-bias-container');
+        if (genTypeEl) {
+            genTypeEl.addEventListener('change', (event) => {
+                this.#selectedGenType = event.target.value;
+                // Показываем/скрываем контейнер боевого уклона
+                if (combatBiasContainer) {
+                    combatBiasContainer.style.display = this.#selectedGenType === 'battle' ? 'block' : 'none';
+                }
+            });
+            genTypeEl.value = this.#selectedGenType;
+            // Инициализация видимости
+            if (combatBiasContainer) {
+                combatBiasContainer.style.display = this.#selectedGenType === 'battle' ? 'block' : 'none';
+            }
+        }
+
+        const combatBiasEl = html.querySelector('[name="combatBias"]');
+        if (combatBiasEl) {
+            combatBiasEl.addEventListener('change', (event) => {
+                this.#selectedCombatBias = event.target.value;
+            });
+            combatBiasEl.value = this.#selectedCombatBias;
+        }
     }
 
-    const importedActor = await Actor.create(actorDataToImport);
+    async _onDrop(event) {
+        event.preventDefault();
+        const target = event.target.closest(".custom-drop-zone");
+        if (target) target.style.backgroundColor = "#2a2a2a";
 
-    const actorContainer = dialogHtml.find(".actor-display-container");
-    const resultHTML = `
-        <div style="padding: 10px; border: 1px solid #4CAF50; margin-top: 10px; background-color: white;">
-            <strong>${game.i18n.format("GAXXGENERATOR.ActorImportedSuccess", { name: importedActor.name })}</strong><br>
-            ${game.i18n.localize("GAXXGENERATOR.RangeLabel")}: ${game.i18n.localize(rangeData.nameKey)}
-        </div>
-    `;
-    actorContainer.html(resultHTML);
-    tempDroppedActorData = null;
-}
+        let dragData = null;
+        try {
+            dragData = JSON.parse(event.dataTransfer.getData("text/plain"));
+        } catch (e) {
+            return;
+        }
 
-function handleActorDrop(sourceActor, droppedActor, dialogHtml) {
-    tempDroppedActorData = droppedActor.toObject();
-    console.log("Ruta system.rank:", droppedActor.system.rank);
+        let droppedActor = null;
+        if (dragData.type === "Actor" && dragData.uuid) {
+            droppedActor = await fromUuid(dragData.uuid);
+        } else if (dragData.tokenId) {
+            const token = canvas.tokens.get(dragData.tokenId);
+            droppedActor = token ? token.actor : null;
+        }
 
-    const actorContainer = dialogHtml.find(".actor-display-container");
-    const actorHTML = `
-        <div class="dropped-actor-card" style="display: flex; align-items: center; padding: 10px; border: 1px solid #ccc; margin-top: 10px; background-color: white;">
-            <img src="${droppedActor.img}" style="width: 50px; height: 50px; margin-right: 10px;"/>
-            <div>
-                <strong>${droppedActor.name}</strong><br>
-                <span>${game.i18n.localize("GAXXGENERATOR.ReadyToGenerateText")}</span>
-            </div>
-        </div>
-    `;
-    actorContainer.html(actorHTML);
-}
+        if (droppedActor) {
+            this.#droppedActor = droppedActor;
+            this.render({ parts: ["content"] });
+        } else {
+            ui.notifications.warn(game.i18n.localize("GAXXGENERATOR.InvalidActorWarning"));
+        }
+    }
 
-function getRandomInt(min, max) {
-    min = Math.ceil(min);
-    max = Math.floor(max);
-    return Math.floor(Math.random() * (max - min + 1)) + min;
-}
+    async _onGenerate(event) {
+        event.preventDefault();
+        
+        if (!this.#droppedActor) {
+            ui.notifications.warn(game.i18n.localize("GAXXGENERATOR.NoActorDraggedWarning"));
+            return;
+        }
 
-function distributePoints(attributesObject, pointsToDistribute, maxRankLimit) {
-    const keys = Object.keys(attributesObject);
-    let remainingPoints = pointsToDistribute;
+        const selectedRangeKey = this.#selectedRange;
+        const selectedGenType = this.#selectedGenType;
+        const selectedCombatBias = this.#selectedCombatBias;
 
-    while (remainingPoints > 0) {
-        const randomKey = keys[getRandomInt(0, keys.length - 1)];
-        const currentVal = attributesObject[randomKey].value;
-        const pokemonMax = attributesObject[randomKey].max || 999; 
+        const rangeData = RANGES_DATA[selectedRangeKey];
+        if (!rangeData) {
+            ui.notifications.error(game.i18n.localize("GAXXGENERATOR.InvalidRangeError"));
+            return;
+        }
 
-        if (currentVal < maxRankLimit && currentVal < pokemonMax) {
-            attributesObject[randomKey].value += 1;
-            remainingPoints -= 1;
-        } else if (keys.every(k => attributesObject[k].value >= maxRankLimit || attributesObject[k].value >= attributesObject[k].max)) {
-            console.warn(game.i18n.localize("GAXXGENERATOR.PointsDistributionWarning"));
-            break;
+        const randomizeGender = game.settings.get("GaxxelPkRoleGenerator", "randomizeGender");
+        const randomizeNature = game.settings.get("GaxxelPkRoleGenerator", "randomizeNature");
+
+        let actorDataToImport = this.#droppedActor.toObject();
+        actorDataToImport.name = game.i18n.format("GAXXGENERATOR.WildPokemonName", {
+            rank: game.i18n.localize(rangeData.nameKey),
+            name: actorDataToImport.name
+        });
+
+        if (actorDataToImport.system) {
+            if (randomizeGender) {
+                actorDataToImport.system.gender = GENDERS[Math.floor(Math.random() * GENDERS.length)];
+            } else {
+                actorDataToImport.system.gender = this.#droppedActor.system.gender || "genderless";
+            }
+
+            if (randomizeNature) {
+                actorDataToImport.system.personality = NATURES[Math.floor(Math.random() * NATURES.length)];
+            } else {
+                actorDataToImport.system.personality = this.#droppedActor.system.personality || "hardy";
+            }
+
+            actorDataToImport.system.rank = selectedRangeKey;
+            
+            // Обновление максимальных значений навыков
+            if (actorDataToImport.system.skills) {
+                Object.keys(actorDataToImport.system.skills).forEach(skillKey => {
+                    actorDataToImport.system.skills[skillKey].max = rangeData.skillMax;
+                });
+            }
+
+            const attrPoints = rangeData.attr;
+            const socPoints = rangeData.social;
+            const skillPoints = rangeData.skill;
+            const skillMax = rangeData.skillMax;
+
+            if (selectedGenType === 'wild') {
+                assignWildStats(actorDataToImport.system.attributes, actorDataToImport.system.social, actorDataToImport.system.skills, attrPoints, socPoints, skillPoints, skillMax);
+            } else if (selectedGenType === 'battle') {
+                assignBattleStats(actorDataToImport.system.attributes, actorDataToImport.system.social, actorDataToImport.system.skills, attrPoints, socPoints, skillPoints, skillMax, selectedCombatBias);
+            } else if (selectedGenType === 'average') {
+                assignAverageStats(actorDataToImport.system.attributes, actorDataToImport.system.social, actorDataToImport.system.skills, attrPoints, socPoints, skillPoints, skillMax);
+            }
+        }
+
+        const importedActor = await Actor.create(actorDataToImport);
+        
+        const container = this.element.querySelector(".actor-display-container");
+        if (container) {
+            container.innerHTML = `
+                <div style="padding: 10px; border: 1px solid #4CAF50; margin-top: 10px; background-color: #1e1e1e; color: #ddd;">
+                    <strong>${game.i18n.format("GAXXGENERATOR.ActorImportedSuccess", { name: importedActor.name })}</strong><br>
+                    ${game.i18n.localize("GAXXGENERATOR.RangeLabel")}: ${game.i18n.localize(rangeData.nameKey)}<br>
+                    ${game.i18n.localize("GAXXGENERATOR.GenerationTypeLabel")}: ${game.i18n.localize(GENERATION_TYPES[selectedGenType].nameKey)}${selectedGenType === 'battle' ? ` (${game.i18n.localize(COMBAT_BIAS_TYPES[selectedCombatBias].nameKey)})` : ''}
+                </div>
+            `;
         }
     }
 }

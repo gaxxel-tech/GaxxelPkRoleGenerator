@@ -2,12 +2,12 @@
   "GAXXGENERATOR": {
     "GeneratePokemon": "Generate Pokemon",
     "SelectTheRank": "Select the Rank",
-    "DragAnActorOrToken": "Drag an actor or token here",
-    "ReleasedActorWillAppear": "The dropped actor will appear here",
+    "DragAnActorOrToken": "Drag an actor here",
     "ActorProcessingMenuTitle": "Pokémon Generator",
     "GenerateAndCreateButton": "Generate Actor",
     "CloseButton": "Close",
     "ReadyToGenerateText": "Ready to generate random statistics.",
+    "ReleasedActorWillAppear": "Dropped actor will appear here",
 
     "RankStarter": "Starter",
     "RankRookie": "Rookie",
@@ -16,13 +16,31 @@
     "RankExpert": "Expert",
     "RankAce": "Ace",
 
-    "InvalidActorWarning": "What you dropped is not a valid actor or token.",
+    "SelectGenerationType": "Generation Type",
+    "GenerationTypeWild": "Wild",
+    "GenerationTypeBattle": "Battle",
+    "GenerationTypeAverage": "Average",
+    "GenerationTypeLabel": "Generation Type",
+
+    "SelectCombatBias": "Combat Bias",
+    "CombatBiasTank": "Tank",
+    "CombatBiasPhysical": "Physical",
+    "CombatBiasSpecial": "Special",
+
+    "InvalidActorWarning": "What you dropped is not a valid actor.",
     "NoActorDraggedWarning": "Please drag an actor to the menu first.",
     "InvalidRangeError": "Invalid Pokémon range selected.",
 
     "WildPokemonName": "{rank} wild {name}",
-    "ActorImportedSuccess": "¡{name} created and imported!",
+    "ActorImportedSuccess": "{name} created and imported!",
     "RangeLabel": "Range",
-    "PointsDistributionWarning": "Could not distribute all points (limits reached)."
+    "PointsDistributionWarning": "Could not distribute all points (limits reached).",
+
+    "Settings": {
+      "RandomizeGenderName": "Random gender",
+      "RandomizeGenderHint": "If enabled, the Pokémon's gender is chosen randomly. Otherwise, the original actor's gender is kept.",
+      "RandomizeNatureName": "Random nature",
+      "RandomizeNatureHint": "If enabled, the Pokémon's nature is chosen randomly. Otherwise, the original actor's nature is kept."
+    }
   }
 }

@@ -1,8 +1,6 @@
 # 🎲 Pokémon/Trainer Generator Module
 
-This is my first module. I built it because sometimes I’m not so quick at coming up with something on the spot when players do completely random things. With this generator, I can improvise much more easily.
-
----
+## This is a fork of [Gaxxel's Pokemon Generator](https://github.com/gaxxel-tech/GaxxelPkRoleGenerator). It will exist until will merged to original repository!!!
 
 ## 🚀 How to Use
 

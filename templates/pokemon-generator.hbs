@@ -1,0 +1,51 @@
+<form>
+    <div class="custom-drag-and-drop-container">
+        <div style="margin-bottom: 10px;">
+            <label for="generation-type-selector">{{localize "GAXXGENERATOR.SelectGenerationType"}}:</label>
+            <select id="generation-type-selector" name="generationType" style="width: 100%; padding: 5px; margin-bottom: 10px;">
+                {{#each generationTypes}}
+                <option value="{{key}}" {{#if selected}}selected{{/if}}>{{localize nameKey}}</option>
+                {{/each}}
+            </select>
+        </div>
+
+        <div class="combat-bias-container" style="margin-bottom: 10px; display: {{#if showCombatBias}}block{{else}}none{{/if}};">
+            <label for="combat-bias-selector">{{localize "GAXXGENERATOR.SelectCombatBias"}}:</label>
+            <select id="combat-bias-selector" name="combatBias" style="width: 100%; padding: 5px;">
+                {{#each combatBiasTypes}}
+                <option value="{{key}}" {{#if selected}}selected{{/if}}>{{localize nameKey}}</option>
+                {{/each}}
+            </select>
+        </div>
+
+        <div style="margin-bottom: 10px;">
+            <label for="pokemon-range-selector">{{localize "GAXXGENERATOR.SelectTheRank"}}:</label>
+            <select id="pokemon-range-selector" name="range" style="width: 100%; padding: 5px;">
+                {{#each ranges}}
+                <option value="{{key}}" {{#if selected}}selected{{/if}}>{{localize nameKey}}</option>
+                {{/each}}
+            </select>
+        </div>
+
+        <div class="custom-drop-zone" style="border: 2px dashed #888; padding: 20px; text-align: center; margin: 10px; background-color: #2a2a2a; color: #ddd;">
+            {{#if droppedActor}}
+            <div class="dropped-actor-card" style="display: flex; align-items: center; padding: 10px; border: 1px solid #555; background-color: #3a3a3a; color: #fff;">
+                <img src="{{droppedActor.img}}" style="width: 50px; height: 50px; margin-right: 10px;"/>
+                <div>
+                    <strong>{{droppedActor.name}}</strong><br>
+                    <span>{{localize "GAXXGENERATOR.ReadyToGenerateText"}}</span>
+                </div>
+            </div>
+            {{else}}
+            {{localize "GAXXGENERATOR.DragAnActorOrToken"}}
+            {{/if}}
+        </div>
+
+        <div class="actor-display-container" style="color: #ddd; margin-top: 10px;">
+            {{#if droppedActor}}
+            {{else}}
+            {{localize "GAXXGENERATOR.ReleasedActorWillAppear"}}
+            {{/if}}
+        </div>
+    </div>
+</form>
