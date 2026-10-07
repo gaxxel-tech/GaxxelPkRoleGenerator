@@ -45,8 +45,8 @@
       "flags": {}
     }
   ],
-  "url": "https://github.com/p4vl0-dev/GaxxelPkRoleGenerator",
-  "manifest": "https://github.com/p4vl0-dev/GaxxelPkRoleGenerator/releases/latest/download/module.json",
-  "download": "https://github.com/p4vl0-dev/GaxxelPkRoleGenerator/releases/latest/download/GaxxelPkRoleGenerator.zip",
+  "url": "https://github.com/gaxxel-tech/GaxxelPkRoleGenerator",
+  "manifest": "https://github.com/gaxxel-tech/GaxxelPkRoleGenerator/releases/latest/download/module.json",
+  "download": "https://github.com/gaxxel-tech/GaxxelPkRoleGenerator/releases/latest/download/GaxxelPkRoleGenerator.zip",
   "flags": {}
 }
