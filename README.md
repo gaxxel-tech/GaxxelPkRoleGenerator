@@ -1,7 +1,5 @@
 # 🎲 Pokémon/Trainer Generator Module
 
-## This is a fork of [Gaxxel's Pokemon Generator](https://github.com/gaxxel-tech/GaxxelPkRoleGenerator). It will exist until will merged to original repository!!!
-
 ## 🚀 How to Use
 
 1. **Open the menu**  
@@ -31,7 +29,7 @@ This generator can automatically create and assign:
 - This module is designed to help with quick improvisation during roleplay sessions.  
 - It works with both Pokémon and Trainer actors, though Trainers may need extra customization.  
 - The goal is to have instant resources ready when players do something unexpected.  
-
+- Fork merged
 ---
 
 ## 🛠️ Project Status
